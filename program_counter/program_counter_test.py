@@ -6,6 +6,7 @@ def program_counter(dut):
 
     def assert_o_count(value, error_msg):
         """Check the value of the output count"""
+        yield from wait()
         assertions.assertEqual(dut.o_count.value.binstr, value, error_msg)
         
     # Test initialization
@@ -17,12 +18,10 @@ def program_counter(dut):
 
     # Enable the output:
     dut.i_enable_out = 1
-    yield from wait()
     assert_o_count('0000', 'o_count should be enabled and initialized')
 
     # Increment:
     dut.i_increment = 1
-    yield from wait()
     assert_o_count('0000', 'o_count should not increment until clock pulse')
     yield from cycle(dut)
     assert_o_count('0001', 'o_count should increment')
@@ -38,15 +37,12 @@ def program_counter(dut):
 
     # Disable and Re-enable output:
     dut.i_enable_out = 0
-    yield from wait()
     assert_o_count('zzzz', 'o_count should disconnect')
     dut.i_enable_out = 1
-    yield from wait()
     assert_o_count('0011', 'o_count should re-enable')
     
     # Reset:
     dut.i_reset = 1
-    yield from wait()
     assert_o_count('0000', 'o_count should reset')
     dut.i_reset = 0
 
