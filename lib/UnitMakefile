@@ -1,0 +1,13 @@
+ifndef SAP_HOME
+$(error SAP_HOME is not set)
+endif
+
+COCOTB=$(SAP_HOME)/cocotb
+DUT=$(notdir $(patsubst %/,%,$(PWD)))
+VERILOG_SOURCES=$(PWD)/$(DUT).v
+PYTHONPATH:=$(SAP_HOME)/lib:$(PYTHONPATH)
+TOPLEVEL := $(DUT)
+MODULE   := $(DUT)_test
+
+include $(COCOTB)/makefiles/Makefile.inc
+include $(COCOTB)/makefiles/Makefile.sim
