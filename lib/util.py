@@ -8,10 +8,12 @@ def wait():
     """Wait for the simulation, without cycling the clock"""
     yield Timer(1)
         
-def cycle(dut, n=1, input='i_clock'):
+def cycle(dut, n=1, inputs=('i_clock',)):
     """Cycle n times"""
     for x in range(n):
-        setattr(dut, input, 1)
+        for i in inputs:
+            setattr(dut, i, 1)
         yield from wait()
-        setattr(dut, input, 0)
+        for i in inputs:
+            setattr(dut, i, 0)
         yield from wait()
