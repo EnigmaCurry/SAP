@@ -5,7 +5,7 @@ endif
 COCOTB=$(SAP_HOME)/cocotb
 DUT=$(notdir $(patsubst %/,%,$(PWD)))
 VERILOG_SOURCES=$(PWD)/$(DUT).v
-PYTHONPATH:=$(SAP_HOME)/lib
+PYTHONPATH:=$(SAP_HOME)
 TOPLEVEL := $(DUT)
 MODULE   := $(DUT)_test
 
