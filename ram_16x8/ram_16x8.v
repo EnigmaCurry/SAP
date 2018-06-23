@@ -15,23 +15,11 @@ module ram_16x8
    reg [7:0]   out;
    assign io_data = (i_read_enable) ? out : 8'bzzzzzzzz;
 
+   integer     index;
    initial begin
-      ram[0]  = 8'b00000000;
-      ram[1]  = 8'b00000000;
-      ram[2]  = 8'b00000000;
-      ram[3]  = 8'b00000000;
-      ram[4]  = 8'b00000000;
-      ram[5]  = 8'b00000000;
-      ram[6]  = 8'b00000000;
-      ram[7]  = 8'b00000000;
-      ram[8]  = 8'b00000000;
-      ram[9]  = 8'b00000000;
-      ram[10] = 8'b00000000;
-      ram[11] = 8'b00000000;
-      ram[12] = 8'b00000000;
-      ram[13] = 8'b00000000;
-      ram[14] = 8'b00000000;
-      ram[15] = 8'b00000000;
+      for(index = 0; index < 16; index=index+1) begin
+         ram[index]  = 8'b00000000;
+      end
    end
 
    always @* begin
