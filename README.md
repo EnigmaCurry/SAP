@@ -1,7 +1,5 @@
 # Simple As Possible Computer (SAP)
 
-_WORK IN PROGRESS_
-
 This project implements a loose interpretation of [Malvino and Brown's
 SAP-1 computer
 architecture](http://deeprajbhujel.blogspot.com/2015/12/sap-1-architecture.html)
@@ -58,12 +56,12 @@ memory (16 bytes!), 2 program registers, and 5 instructions. A
 *really* simple computer. Here's a comparison with a few other 8 bit
 computers:
 
-| CPU                                                                                    | Year | Address Size | Max Ram | # registers | # instructions | # transistors |
-|----------------------------------------------------------------------------------------|------|--------------|---------|-------------|----------------|---------------|
-| SAP-1 (Malvino)                                                                        | 1977 | 4 bits       | 16 B    | 2           | 5              | <500          |
-| [Intel 8008](https://en.wikipedia.org/wiki/Intel_8008) (the 'first' 8bit CPU)          | 1972 | 14 bits      | 16 KB   | 7           | 48             | 3500          |
-| Apple II ([MOS 6502](https://en.wikipedia.org/wiki/MOS_Technology_6502), Commodore 64) | 1975 | 16 bits      | 64 KB   | 3           | 56             | 4237          |
-| TRS-80 ([Z80](https://en.wikipedia.org/wiki/Zilog_Z80))                                | 1977 | 16 bits      | 64 KB   | 17          | 158            | 8500          |
+| CPU                                                                                         | Year | Address Size | Max Ram | # registers | # instructions | # transistors |
+|---------------------------------------------------------------------------------------------|------|--------------|---------|-------------|----------------|---------------|
+| SAP-1 (Malvino)                                                                             | 1977 | 4 bits       | 16 B    |           2 |              5 |          <500 |
+| [Intel 8008](https://en.wikipedia.org/wiki/Intel_8008) (the 'first' 8bit CPU)               | 1972 | 14 bits      | 16 KB   |           7 |             48 |          3500 |
+| Apple II ([MOS 6502](https://en.wikipedia.org/wiki/MOS_Technology_6502), Commodore 64, NES) | 1975 | 16 bits      | 64 KB   |           3 |             56 |          4237 |
+| TRS-80 ([Z80](https://en.wikipedia.org/wiki/Zilog_Z80))                                     | 1977 | 16 bits      | 64 KB   |          17 |            158 |          8500 |
 
 
 ## Architecture
@@ -126,7 +124,7 @@ between components, which is 8 bits wide. The bus can transmit
 arbitrary binary data, as well as program instructions. In many other
 CPU designs, there are two busses: one for instructions/addresses, and
 a separate one for data. The two bus architecture is often called
-Harvard design. The SPA-1 design is supposed to be simpler, so both
+Harvard design. The SAP-1 design is supposed to be simpler, so both
 data, and instructions, share a single bus, like a time-share.
 
 When the bus is used for binary data, all 8 bits of the bus are used.
@@ -151,7 +149,7 @@ upon).
 | FR        | Flags Register           | 2 bit register flags                                           | Flags are stored when an ADD or SUB instruction results in either: 0 (zero flag) or a number that cannot be represented in 8 bits (carry flag) |
 
 The other symbols on the diagram with arrows pointing in or out of the
-units, are the control signals coming from the main Control Sequencer,
+units, are the control signals coming from the main _Control Sequencer_,
 discussed later.
 
 ## Instruction set
@@ -260,52 +258,55 @@ These are the control signals output from the main controller:
 | J              | Jump               | The Program Counter is told to read from the bus, and update its count to the loNib value                                          |
 | FI             | Flags In           | The Flags register is told to store the current ALU flags (connected outside the bus)                                              |
 
-The 'controller' is shorthand for Control Sequencer, as it controls
+The 'controller' is shorthand for _Control Sequencer_, as it controls
 the process of a single instruction over the duration of several
 sequential clock cycles. For the sake of simplicity, the orginal SAP-1
 controller defined every instruction as taking 6 clock cycles (or 6
-t-states). (Not every instruction needed those 6 cycles, but it is
-simpler to implement if you just wait out the extra cycles doing
+t-states). (Not every instruction needed all of those 6 cycles, but it
+is simpler to implement if you just wait out the unused cycles doing
 nothing.) Each t-state of the instruction is carried out sequentially,
 with the controller outputing different control signals depending on
-the current instruction and step. The controller is programmed for
-each instruction and carries out the step-sequence of the control
-signals necessary for the given instruction.
+the current instruction and step. The controller is designed to handle
+each type of instruction, and carries out the step-sequence of the
+control signals necessary for the given instruction.
 
-For example, examine the LDA instruction. It requires 4 steps (with
-each part of a step happening in parallel.)
+For example, let's examine the execution of a single instruction:
+**LDA**. From the perspective of the controller, this requires 6 steps
+(only 4 used for LDA). Each part of a step happens in parallel:
 
- 1. Do the following Memory Fetch operations, in parallel:
+ 1. Do the following _Memory Fetch_ operations, in parallel:
  
      - Tell the Program Counter (PC) to output the current program
-       pointer to the main bus. This is the current 'line' of our program,
-       (actually it's the address pointing to it, in memory). Any component
-       could potentially now read this value from the bus, but it will not
-       do so unless the Control Sequencer tells it to.
+       pointer to the main bus. This is the next 'line number' of our
+       program to execute, (actually it's the address pointing to it,
+       in memory). Any component could potentially now read this value
+       from the bus, but will not do so unless the _Control Sequencer_
+       tells it to.
        
-     - The Memory Address Register (MAR) is told to read the main bus.
-       For this moment, the MAR and the PC now contain the same value.
+     - The Memory Address Register (MAR) is told to read this value
+       from the main bus. For this moment, the MAR and the PC now
+       contain the same value.
 
-
- 2. Do the following Memory Fetch operations, in parallel:
+ 2. Do the following _Memory Fetch_ operations, in parallel:
  
-     - Tell the Memory (RAM) to lookup the memory stored for the MAR
-       address, and output the data to the main bus. 
+     - Tell the Memory (RAM) to lookup the memory stored at the
+       address that the MAR holds, and output the data to the main
+       bus.
 
      - Tell the Instruction Register (IR) to read from the main bus,
-       and to decode and store the current instruction.
+       to decode, and store the current instruction.
 
-     - The Instruction Register is always connected to the Control
-       Sequencer, outputting the decoded Opcode from the stored
-       instruction (the hiNib, the 'what to do'; LDA in this
-       example). This Opcode informs the Control Sequencer in its
+     - The Instruction Register (IR) is always connected to the
+       _Control Sequencer_, outputting the decoded Opcode from the
+       stored instruction (the hiNib, the 'what to do'; LDA in this
+       example). This Opcode informs the _Control Sequencer_ in its
        decision for what to do in subsequent steps.
 
      - Tell the Program Counter (PC) to increment itself, in
-       preparation for the next instruction (which won't happen until
+       preparation for the next instruction (which won't occur until
        all the steps of the current instruction finish).
  
- 3. Do the following LDA specific operations, in parallel:
+ 3. Do the following _LDA specific_ operations, in parallel:
  
      - Tell the Instruction Register (IR) to output the instruction to
        the bus. The memory address operand of the LDA instruction is
@@ -314,15 +315,27 @@ each part of a step happening in parallel.)
      - Tell the Memory Address Register (MAR) to load from the main
        bus. This is the address to load from memory in the next step.
 
- 4. Do the following LDA specific operations, in parallel:
+ 4. Do the following _LDA specific_ operations, in parallel:
  
      - Tell the Memory (RAM) to lookup the data from the MAR address,
        and output it to the main bus. Now the bus contains the
        contents of memory specified by the LDA instruction.
 
      - Tell Register A to read from the main bus. Now Register A
-       contains the data the LDA instruction told it to load.
+       contains the data the LDA instruction told it to load. This
+       completes the LDA instruction.
 
+ 5. No operation. Just wait.
+
+     - Malvino's SAP-1 always used 6 T-states for instructions, so
+       instructions that don't need these extra T-states just waited
+       out the unused cycles, doing nothing.
+
+ 6. No operation. Just wait.
+
+     - (In Verilog, we trim off these unused T-states, because we
+       can.)
+ 
 The above explanation may seem overly complicated, and expressed in
 words, it is. Each step can be simplified if written with
 combinatorial logic, using the Control Signal names as labels. Here
@@ -345,7 +358,7 @@ to the Instruction type, and are therefore different for each
 instruction.
 
 These control sequences are implemented in the hardware design of the
-Control Sequencer. This is easy to do in Verilog, because if you want
+_Control Sequencer_. This is easy to do in Verilog, because if you want
 to modify the architecture, perhaps to add a new type of Instruction,
 you just modify the code. In Ben's breadboard design, he implemented
 these control sequences as an eeprom. This makes his design flexible,
@@ -354,14 +367,14 @@ To do so, he does not need to change any of the existing wires, just
 reprogram the eeprom. In our Verilog design, the whole implementation
 is programmed, so this is an unnecessary complication. We don't need
 microcode, we can just hardcode the control sequences directly into
-the Control Sequencer implementation, and recompile when changes are
+the _Control Sequencer_ implementation, and recompile when changes are
 made. (This decision is more conducive to FPGA implementation than
 ASIC design. An ASIC that supports microcode is software upgradeable.
 A hardcoded ASIC implementation is not.)
 
-## Is this really a computer though?
+## Is SAP-1 really a computer though?
 
-With only five instructions, the only things SPA-1 can do are: Read
+With only five instructions, the only things SAP-1 can do are: Read
 memory; Add and Subtract 8 bit numbers; Show the result; and Stop.
 This is a calculator, not a full computer. To make this system useful,
 more instructions need to be created. (Up to 16 instructions can be
@@ -405,20 +418,15 @@ cd SAP
 git submodule init
 git submodule update
 
+# The main integration test, which runs a simple program
+# to test how all the parts work together.
+make
+
 # Each component has its own Makefile in its own directory.
 # Running 'make' will simulate the component by itself, driven 
 # by a Python test bench found in the same directory:
 cd program_counter
 make
-
-# Integration tests are tests that invole two or more components
-# interacting together at the same time. Find these tests in the
-# integration/test directory:
-cd ../integration/test/pc_and_mar
-make
-
-# Eventually there will be a Makefile here in the root directory that
-# wraps all the components together to form a single CPU module. For
-# now, this is all just a bunch of individual parts.
 ```
 
+[See here for example output of the main integration test](https://gist.githubusercontent.com/EnigmaCurry/ca2b9b4e29e288ea9f2b4f5af8bdc98e/raw/2042fdc87bc438bc9c0218b52bc8c93fbcf7a5c8/gistfile1.txt)

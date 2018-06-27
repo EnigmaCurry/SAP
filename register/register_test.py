@@ -1,9 +1,9 @@
 import cocotb
 from lib.util import assertions
-from lib.cycle import clock, wait, reset
+from lib.cycle import wait, reset
 
 @cocotb.test()
-def instruction_register(dut):
+def register(dut):
 
     def assert_o_bus(value, error_msg='wrong data'):
         """Check the bus out value"""
@@ -29,10 +29,10 @@ def instruction_register(dut):
     dut.i_bus = 0b01000010
     # Tell the register to load it:
     dut.i_load_data = 1
-    yield from clock(dut)
+    yield from wait()
+    assert_o_unbuffered('01000010', 'Data should go to unbuffered out immediately')
     yield from reset_input()
     assert_o_bus('zzzzzzzz', 'Data should be latched in, but not output yet.')
-    assert_o_unbuffered('01000010', 'Data should go to unbuffered out now')
 
     #### Test sending data
     dut.i_send_data = 1

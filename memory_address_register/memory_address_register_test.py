@@ -22,10 +22,6 @@ def memory_address_register(dut):
     # Enable the input
     dut.i_enable_in = 1
     yield from wait()
-    assert_o_address('0000', 'Address should not change until next cycle')
-
-    # Pulse the clock, and the output should now be the same as the input
-    yield from clock(dut)
     assert_o_address('0100', 'Address should change to 0100')
 
     # Reset the address

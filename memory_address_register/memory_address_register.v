@@ -3,8 +3,7 @@
  */
 module memory_address_register
   (
-   // System clock signal:
-   input        i_clock,
+   input        i_debug,
    // 4 bit address to store
    input [3:0]  i_address,
    // Only allow storing address when enabled
@@ -20,11 +19,15 @@ module memory_address_register
 
    assign o_address = address;
 
-   always @(posedge i_clock or posedge i_reset) begin
-      if(i_reset)
-        address <= 4'b0000;
-      else if(i_enable_in)
-        address <= i_address;
+   always @(i_address or posedge i_enable_in) begin
+      if(i_enable_in) begin
+         address <= i_address;
+         if(i_debug) $display("DEBUG: MAR load address: %b", i_address);
+      end
+   end
+   always @(posedge i_reset) begin
+      address <= 4'b0000;
+      if(i_debug) $display("DEBUG: MAR reset: %b", 4'b0000);
    end
    
 endmodule // memory_address_register

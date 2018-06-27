@@ -2,12 +2,29 @@ ifndef SAP_HOME
 $(error SAP_HOME is not set)
 endif
 
+ifndef COCOTB
 COCOTB=$(SAP_HOME)/cocotb
+endif
+
+ifndef DUT
 DUT=$(notdir $(patsubst %/,%,$(PWD)))
+endif
+
+ifndef VERILOG_SOURCES
 VERILOG_SOURCES=$(PWD)/$(DUT).v
+endif
+
+ifndef PYTHONPATH
 PYTHONPATH:=$(SAP_HOME)
+endif
+
+ifndef TOPLEVEL
 TOPLEVEL := $(DUT)
+endif
+
+ifndef MODULE
 MODULE   := $(DUT)_test
+endif
 
 include $(COCOTB)/makefiles/Makefile.inc
 include $(COCOTB)/makefiles/Makefile.sim

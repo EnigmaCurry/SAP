@@ -4,6 +4,9 @@ Cycle means setting a value high, waiting, then setting back to low.
 """
 from cocotb.triggers import Timer
 
+# Perform the clock counting in Python to avoid race in Verilog debugging:
+clock_count = 0
+
 def wait():
     """Wait for the simulation, without cycling anything."""
     yield Timer(1)
@@ -20,7 +23,12 @@ def cycle(dut, n=1, signals=('i_clock',)):
 
 def clock(dut, n=1):
     """Cycle the i_clock input signal n times"""
-    yield from cycle(dut, n, signals=('i_clock',))
+    global clock_count
+    for i in range(n):
+        clock_count += 1
+        print("DEBUG: -------------------------------")
+        print("DEBUG: Clock cycle : %d" % clock_count)
+        yield from cycle(dut, 1, signals=('i_clock',))
         
 def reset(dut, n=1):
     """Cycle the i_reset input signal n times"""
